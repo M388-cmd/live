@@ -1,0 +1,154 @@
+/* --- Importar Fuentes --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+/* --- Variables Globales --- */
+:root {
+    --bg-color-start: #1a1a2e; /* Azul noche oscuro */
+    --bg-color-mid: #16213e;
+    --bg-color-end: #0f3460;
+    --container-bg: rgba(26, 26, 46, 0.85); /* Fondo semi-transparente */
+    --primary-accent: #5378f8; /* Azul vibrante */
+    --primary-accent-hover: #4566d1;
+    --danger-color: #e94560; /* Rojo para errores */
+    --text-primary: #e0e0e0; /* Texto claro */
+    --text-secondary: #a0a0c0; /* Texto secundario tenue */
+    --border-radius: 10px;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --font-family: 'Poppins', sans-serif;
+}
+
+/* --- Animación de Fondo --- */
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    color: var(--text-primary);
+    background: linear-gradient(-45deg, var(--bg-color-start), var(--bg-color-mid), var(--bg-color-end));
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* --- Contenedor Principal --- */
+.container {
+    background: var(--container-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 5px 15px var(--shadow-color);
+    max-width: 800px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative; /* Necesario para posicionar el h1 relativo al contenedor */
+    margin-top: 80px; /* Espacio para el título */
+}
+
+/* --- Título --- */
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    color: white , blue, green;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 3px var(--shadow-color);
+    position: absolute; /* Posiciona el título encima del contenedor */
+    top: -40px; /* Ajusta la posición vertical */
+    left: 50%; /* Centra horizontalmente */
+    transform: translateX(-50%); /* Corrige el desplazamiento horizontal */
+    z-index: 10; /* Asegura que esté encima de otros elementos */
+}
+
+/* --- Controles --- */
+#controls {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+#controls button {
+    background: var(--primary-accent);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px var(--shadow-color);
+}
+
+#controls button:hover {
+    background: var(--primary-accent-hover);
+    transform: translateY(-3px);
+}
+
+#controls button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+#status {
+    text-align: center;
+    font-style: italic;
+    margin-top: 1rem;
+    color: var(--text-secondary);
+}
+
+/* --- Previsualización de Medios --- */
+#media-previews {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.preview-container {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    box-shadow: 0 3px 6px var(--shadow-color);
+}
+
+.preview-container p {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+video {
+    width: 100%;
+    border-radius: var(--border-radius);
+    background: #000;
+}
+
+/* --- Chatbox --- */
+#chatbox {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    min-height: 150px;
+    box-shadow: 0 3px 6px var(--shadow-color);
+    overflow-y: auto;
+}
+
+/* --- Canvas Oculto --- */
+#captureCanvas {
+    display: none;
+}
+
+/* --- Responsividad --- */
+h1 {
+    top: -20px; /* Ajusta la posición vertical para que esté más abajo */
+}

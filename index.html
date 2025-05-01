@@ -1,0 +1,52 @@
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Miguel IA</title>
+    <!-- Enlace al archivo CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Título con espacio para el nombre del usuario -->
+    <h1>Miguel IA live <span id="userNameDisplay" style="font-weight: normal; font-size: 0.8em;"></span></h1>
+
+    <div class="container">
+        <div id="controls">
+            <button id="listenBtn">🎤 Escuchar</button>
+            <button id="screenShareBtn">📺 Compartir Pantalla</button>
+            <button id="cameraBtn">📸 Usar Cámara</button>
+            <p id="status">Estado: Inicializando...</p>
+            <button id="clearMemoryBtn" title="Borrar nombre, hechos e historial">🗑️ Borrar Memoria</button>
+        </div>
+
+        <div id="media-previews">
+            <div class="preview-container">
+                <p>Vista Cámara:</p>
+                <video id="cameraPreview" muted autoplay playsinline></video>
+            </div>
+            <div class="preview-container">
+                <p>Vista Pantalla:</p>
+                <video id="screenPreview" muted autoplay playsinline></video>
+            </div>
+        </div>
+
+        <div id="chatbox">
+            <!-- La conversación aparecerá aquí -->
+        </div>
+
+        <!-- Canvas oculto para capturar frames -->
+        <canvas id="captureCanvas"></canvas>
+
+    </div>
+
+    <!-- Enlace al archivo JavaScript (al final del body) -->
+   
+    <!-- Then include your script -->
+    <!-- <script src="your_script_name.js"></script> -->
+    <script src="script.js"></script>
+</body>
+</html>
