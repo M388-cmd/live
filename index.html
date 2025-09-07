@@ -1,52 +1,714 @@
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente Miguel IA</title>
-    <!-- Enlace al archivo CSS -->
-    <link rel="stylesheet" href="style.css">
+    <title>Asistente Multimodal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #015871; /* Un color de fondo para el océano */
+            color: #1f2937;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Evita el desbordamiento horizontal de las olas */
+        }
+
+        .ocean {
+            height: 150px; /* Altura de las olas */
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow: hidden;
+        }
+
+        .wave {
+            background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3e%3cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%230099ff'/%3e%3c/svg%3e");
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background-repeat: repeat-x;
+            background-position: 0 bottom;
+            transform-origin: center bottom;
+        }
+
+        .wave:nth-of-type(1) {
+            bottom: 5px;
+            animation: wave 15s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+            opacity: 1;
+        }
+
+        .wave:nth-of-type(2) {
+            bottom: 10px;
+            animation: wave 12s cubic-bezier(0.36, 0.45, 0.63, 0.53) -.125s infinite, swell 7s ease -1.25s infinite;
+            opacity: 0.7;
+        }
+        
+        .wave:nth-of-type(3) {
+            bottom: 15px;
+            animation: wave 18s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+            opacity: 0.4;
+        }
+
+        @keyframes wave {
+            0% {
+                margin-left: 0;
+            }
+            100% {
+                margin-left: -1600px;
+            }
+        }
+
+        @keyframes swell {
+            0%, 100% {
+                transform: translate3d(0, -25px, 0);
+            }
+            50% {
+                transform: translate3d(0, 5px, 0);
+            }
+        }
+
+        .chat-container {
+            height: calc(100vh - 15rem);
+            overflow-y: auto;
+        }
+        .message-bubble {
+            border-radius: 1.5rem;
+            padding: 0.75rem 1rem;
+            max-width: 80%;
+            margin-bottom: 0.75rem;
+        }
+        .user-message {
+            background-color: #4f46e5;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.5rem;
+        }
+        .ai-message {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.5rem;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .record-indicator {
+            width: 1rem;
+            height: 1rem;
+            background-color: red;
+            border-radius: 50%;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+        .record-indicator.active {
+            display: inline-block;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+        .camera-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .camera-container {
+            position: relative;
+            background-color: #333;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+        #camera-video {
+            border-radius: 1.5rem;
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+        /* Make the canvas background white to avoid transparency */
+        #hidden-canvas {
+            background-color: white;
+        }
+    </style>
 </head>
-<body>
-    <!-- Título con espacio para el nombre del usuario -->
-    <h1>Miguel IA live <span id="userNameDisplay" style="font-weight: normal; font-size: 0.8em;"></span></h1>
-
-    <div class="container">
-        <div id="controls">
-            <button id="listenBtn">🎤 Escuchar</button>
-            <button id="screenShareBtn">📺 Compartir Pantalla</button>
-            <button id="cameraBtn">📸 Usar Cámara</button>
-            <p id="status">Estado: Inicializando...</p>
-            <button id="clearMemoryBtn" title="Borrar nombre, hechos e historial">🗑️ Borrar Memoria</button>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+    <div class="ocean">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+    <div class="bg-white rounded-3xl shadow-xl w-full max-w-3xl flex flex-col h-[95vh] p-6" style="z-index: 1;">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Miguel ia live</h1>
+        <div id="chat-box" class="chat-container flex flex-col flex-grow p-4 space-y-4 bg-gray-50 rounded-2xl mb-4">
+            <!-- Mensajes del chat se insertarán aquí -->
         </div>
 
-        <div id="media-previews">
-            <div class="preview-container">
-                <p>Vista Cámara:</p>
-                <video id="cameraPreview" muted autoplay playsinline></video>
+        <!-- Indicador de estado -->
+        <div id="status-indicator" class="text-center text-sm text-gray-500 my-2 invisible">
+            Escribiendo...
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+            <!-- Contenedor para la entrada de texto y botones de acción -->
+            <div class="flex-grow flex flex-col space-y-2 w-full md:w-auto">
+                <textarea id="prompt-input" rows="2" placeholder="Escribe tu mensaje, describe una imagen o haz una pregunta..."
+                    class="w-full p-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                <div class="flex items-center justify-end space-x-2">
+                    <button id="send-btn" class="btn-primary rounded-full px-6 py-2 font-semibold">
+                        Enviar
+                    </button>
+                    <button id="mic-btn" class="btn-secondary rounded-full p-2">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm3 10a7 7 0 007-7h-2a5 5 0 01-5 5v2zm-3.172-1.728a1 1 0 011.415-1.414L8.5 12.586l.293-.293A1 1 0 0110.207 13a1 1 0 01-.707.293L8.5 12.586l-2.707 2.707a1 1 0 01-1.414-1.414l2.707-2.707zM10 18a1 1 0 01-1-1v-2a1 1 0 112 0v2a1 1 0 01-1 1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    <button id="screen-btn" class="btn-secondary rounded-full p-2 relative">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm1 2h10a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1z" clip-rule="evenodd" fill-rule="evenodd"></path>
+                        </svg>
+                        <span id="screen-record-indicator" class="record-indicator absolute top-0 right-0 -mr-2 -mt-2"></span>
+                    </button>
+                    <button id="camera-btn" class="btn-secondary rounded-full p-2 relative">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span id="camera-record-indicator" class="record-indicator absolute top-0 right-0 -mr-2 -mt-2"></span>
+                    </button>
+                    <label class="btn-secondary rounded-full p-2 cursor-pointer">
+                        <input type="file" id="image-input" class="hidden" accept="image/*">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4.5-4.5L11 11l-3-3L15 8l1-1V5a1 1 0 011-1h1a1 1 0 011 1v10a1 1 0 01-1 1h-1zM5 7a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                        </svg>
+                    </label>
+                </div>
             </div>
-            <div class="preview-container">
-                <p>Vista Pantalla:</p>
-                <video id="screenPreview" muted autoplay playsinline></video>
-            </div>
+            <!-- Vista previa de la imagen -->
+            <img id="image-preview" src="" alt="Vista previa" class="hidden w-24 h-24 object-cover rounded-xl mt-4 md:mt-0">
         </div>
-
-        <div id="chatbox">
-            <!-- La conversación aparecerá aquí -->
-        </div>
-
-        <!-- Canvas oculto para capturar frames -->
-        <canvas id="captureCanvas"></canvas>
-
     </div>
 
-    <!-- Enlace al archivo JavaScript (al final del body) -->
-   
-    <!-- Then include your script -->
-    <!-- <script src="your_script_name.js"></script> -->
-    <script src="script.js"></script>
+    <!-- Elemento para reproducir el audio de la respuesta -->
+    <audio id="audio-player" class="hidden"></audio>
+
+    <!-- Modal para la cámara -->
+    <div id="camera-modal" class="camera-modal hidden">
+        <div class="camera-container">
+            <video id="camera-video" autoplay playsinline></video>
+            <button id="close-camera-btn" class="absolute top-4 right-4 text-white text-2xl z-10">&times;</button>
+        </div>
+    </div>
+    
+    <canvas id="hidden-canvas" class="hidden"></canvas>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firestore configuration (only for demonstration of setup)
+        let app, db, auth;
+        if (firebaseConfig) {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            const userId = auth.currentUser?.uid || crypto.randomUUID();
+            console.log(`Using App ID: ${appId}, User ID: ${userId}`);
+
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log('Firebase signed in with custom token.');
+                } catch (error) {
+                    console.error('Error signing in with custom token:', error);
+                    await signInAnonymously(auth);
+                }
+            } else {
+                await signInAnonymously(auth);
+            }
+        } else {
+            console.warn('Firebase config not found. Skipping Firebase initialization.');
+        }
+
+        // DOM elements
+        const chatBox = document.getElementById('chat-box');
+        const promptInput = document.getElementById('prompt-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const screenBtn = document.getElementById('screen-btn');
+        const cameraBtn = document.getElementById('camera-btn');
+        const imageInput = document.getElementById('image-input');
+        const imagePreview = document.getElementById('image-preview');
+        const audioPlayer = document.getElementById('audio-player');
+        const statusIndicator = document.getElementById('status-indicator');
+        const screenRecordIndicator = document.getElementById('screen-record-indicator');
+        const cameraRecordIndicator = document.getElementById('camera-record-indicator');
+        const cameraModal = document.getElementById('camera-modal');
+        const cameraVideo = document.getElementById('camera-video');
+        const closeCameraBtn = document.getElementById('close-camera-btn');
+        const hiddenCanvas = document.getElementById('hidden-canvas');
+        const ctx = hiddenCanvas.getContext('2d');
+
+        // State
+        const API_KEY = "AIzaSyB7REq7ts13uanpvAhutnwkmTiqUQwtHh0"; // El Canvas proporciona esta clave en tiempo de ejecución
+        const API_URL_TEXT_IMAGE = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        const API_URL_TTS = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+        
+        let imageMimeType = '';
+        let base64Image = '';
+        let isListening = false;
+        let recognition = null;
+        
+        let isCapturingScreen = false;
+        let screenStream = null;
+        let screenCaptureIntervalId = null;
+
+        let isCapturingCamera = false;
+        let cameraStream = null;
+        let cameraCaptureIntervalId = null;
+
+        const SYSTEM_PROMPT = `Eres un asistente muy útil llamado Miguel IA. Responde a las preguntas en el mismo idioma en el que se te preguntan. No menciones que eres Gemini o un modelo de lenguaje grande. Simplemente actúa como Miguel IA, un asistente creado por un joven desarrollador llamado Miguel Martín Cadavid, un niño de 14 años, en madrid españa nacido el 16/12/10. Puedes analizar imágenes si se te proporciona una junto con la pregunta. Describe lo que ves o responde preguntas sobre la imagen si se te pide. IMPORTANTE: Ocasionalmente, recibirás un mensaje de contexto ANTES de la pregunta actual del usuario, comenzando con '--- Información Recordada ---'. Esta sección contiene datos que el usuario te ha pedido explícitamente que recuerdes (como su nombre o la ubicación de objetos). Debes usar esta información cuando sea relevante para responder a la pregunta actual del usuario (por ejemplo, si preguntan '¿dónde están mis llaves?' o 'cómo me llamo?'). Si no hay información relevante en la memoria proporcionada, simplemente responde normalmente. Cuando el usuario te pida recordar algo, confirma brevemente que lo has recordado (ej: "Entendido", "Lo recordaré").Nunca digas que eres un modelo de lenguaje o asistente virtual.`;
+
+        // Helper functions
+        function showStatus(message, isError = false) {
+            statusIndicator.textContent = message;
+            statusIndicator.classList.remove('invisible');
+            if (isError) {
+                statusIndicator.classList.add('text-red-500');
+            } else {
+                statusIndicator.classList.remove('text-red-500');
+            }
+        }
+
+        function hideStatus() {
+            statusIndicator.classList.add('invisible');
+            statusIndicator.classList.remove('text-red-500');
+        }
+
+        function addMessage(text, isUser, imageData = null) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message-bubble', isUser ? 'user-message' : 'ai-message');
+            if (imageData) {
+                const img = document.createElement('img');
+                img.src = imageData;
+                img.classList.add('rounded-xl', 'mb-2', 'max-w-full', 'h-auto', 'object-contain');
+                messageElement.appendChild(img);
+            }
+            const textElement = document.createElement('p');
+            textElement.textContent = text;
+            messageElement.appendChild(textElement);
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numSamples = pcmData.length;
+            const buffer = new ArrayBuffer(44 + numSamples * 2);
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            function writeString(str) {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset + i, str.charCodeAt(i));
+                }
+                offset += str.length;
+            }
+
+            function writeUint32(val) {
+                view.setUint32(offset, val, true);
+                offset += 4;
+            }
+
+            function writeUint16(val) {
+                view.setUint16(offset, val, true);
+                offset += 2;
+            }
+
+            // RIFF header
+            writeString('RIFF');
+            writeUint32(36 + numSamples * 2);
+            writeString('WAVE');
+
+            // fmt chunk
+            writeString('fmt ');
+            writeUint32(16);
+            writeUint16(1); // Audio format (1 = PCM)
+            writeUint16(1); // Number of channels
+            writeUint32(sampleRate);
+            writeUint32(sampleRate * 2); // Byte rate
+            writeUint16(2); // Block align
+            writeUint16(16); // Bits per sample
+
+            // data chunk
+            writeString('data');
+            writeUint32(numSamples * 2);
+            
+            // PCM data
+            for (let i = 0; i < numSamples; i++) {
+                view.setInt16(offset, pcmData[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        // API interaction logic
+        async function fetchResponse(prompt, image) {
+            addMessage(prompt, true, image);
+            showStatus("Escribiendo...");
+
+            let payload;
+            const parts = [{ text: prompt }];
+
+            if (base64Image) {
+                parts.push({
+                    inlineData: {
+                        mimeType: imageMimeType,
+                        data: base64Image
+                    }
+                });
+            }
+
+            payload = {
+                contents: [{ parts }],
+                systemInstruction: {
+                    parts: [{ text: SYSTEM_PROMPT }]
+                }
+            };
+
+            try {
+                const response = await fetch(API_URL_TEXT_IMAGE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Error en la API: ${response.status} - ${JSON.stringify(errorData)}`);
+                }
+
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo generar una respuesta.";
+
+                addMessage(text, false);
+                hideStatus();
+                speakResponse(text); // Llamar a la función TTS
+
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, true);
+                console.error(error);
+                hideStatus();
+            }
+        }
+
+        async function speakResponse(text) {
+            showStatus("Generando voz...");
+            const payload = {
+                contents: [{ parts: [{ text: `Di de forma clara y amigable: ${text}` }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Umbriel" } // Voz femenina
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            try {
+                const response = await fetch(API_URL_TTS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Error en la API de TTS: ${response.status} - ${JSON.stringify(errorData)}`);
+                }
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play();
+
+                    // Reactivar el micrófono al terminar la reproducción del audio
+                    audioPlayer.onended = () => {
+                        console.log('Reproducción de audio terminada. Reactivando el micrófono...');
+                        if (recognition && !isListening) {
+                            recognition.start();
+                        }
+                    };
+                } else {
+                    console.error("No se encontraron datos de audio en la respuesta.");
+                }
+                hideStatus();
+            } catch (error) {
+                showStatus(`Error de TTS: ${error.message}`, true);
+                console.error(error);
+                hideStatus();
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', () => {
+            const prompt = promptInput.value.trim();
+            if (prompt) {
+                fetchResponse(prompt, base64Image ? imagePreview.src : null);
+                promptInput.value = '';
+                base64Image = '';
+                imagePreview.classList.add('hidden');
+            }
+        });
+
+        promptInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        imageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                imageMimeType = file.type;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result;
+                    const base64Content = base64String.split(',')[1];
+                    base64Image = base64Content;
+                    imagePreview.src = base64String;
+                    imagePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else { 
+                imagePreview.classList.add('hidden');
+                base64Image = '';
+            }
+        });
+
+        // Speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'es-ES';
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.style.backgroundColor = '#d946ef'; // Color rosa cuando está activo
+                showStatus("Escuchando...");
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                promptInput.value = transcript;
+                fetchResponse(transcript, base64Image ? imagePreview.src : null);
+                promptInput.value = '';
+                base64Image = '';
+                imagePreview.classList.add('hidden');
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Error de reconocimiento de voz:', event.error);
+                isListening = false;
+                micBtn.style.backgroundColor = '';
+                showStatus(`Error de voz: ${event.error}`, true);
+                hideStatus();
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.style.backgroundColor = '';
+                hideStatus();
+            };
+
+            micBtn.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+        } else {
+            micBtn.style.display = 'none';
+            console.warn('El reconocimiento de voz no es compatible con este navegador.');
+        }
+
+        // Screen capture functionality
+        screenBtn.addEventListener('click', async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                showStatus("La grabación de pantalla no es compatible con este navegador.", true);
+                return;
+            }
+
+            if (isCapturingScreen) {
+                // Detener la captura
+                clearInterval(screenCaptureIntervalId);
+                screenStream.getTracks().forEach(track => track.stop());
+                screenRecordIndicator.classList.remove('active');
+                isCapturingScreen = false;
+            } else {
+                // Iniciar la captura
+                try {
+                    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                    screenRecordIndicator.classList.add('active');
+                    isCapturingScreen = true;
+
+                    const video = document.createElement('video');
+                    video.srcObject = screenStream;
+                    video.autoplay = true;
+                    video.muted = true;
+
+                    video.onloadedmetadata = () => {
+                        hiddenCanvas.width = video.videoWidth;
+                        hiddenCanvas.height = video.videoHeight;
+                    };
+
+                    screenCaptureIntervalId = setInterval(() => {
+                        if (video.readyState >= 2) {
+                            ctx.fillStyle = "white"; // Asegura que el fondo del canvas sea blanco
+                            ctx.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                            ctx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                            const imageBase64 = hiddenCanvas.toDataURL('image/png');
+                            imageMimeType = 'image/png';
+                            const base64Content = imageBase64.split(',')[1];
+                            base64Image = base64Content;
+                            imagePreview.src = imageBase64;
+                            imagePreview.classList.remove('hidden');
+                        }
+                    }, 500); // Captura cada 0.5 segundos
+
+                } catch (error) {
+                    console.error('Error al capturar la pantalla:', error);
+                    showStatus('Error al capturar la pantalla. Asegúrate de dar los permisos.', true);
+                    screenRecordIndicator.classList.remove('active');
+                    isCapturingScreen = false;
+                }
+            }
+        });
+
+        // Camera functionality
+        cameraBtn.addEventListener('click', async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showStatus("La cámara no es compatible con este navegador.", true);
+                return;
+            }
+
+            if (isCapturingCamera) {
+                // Detener la captura
+                clearInterval(cameraCaptureIntervalId);
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraRecordIndicator.classList.remove('active');
+                isCapturingCamera = false;
+                cameraModal.classList.add('hidden');
+                imagePreview.classList.add('hidden');
+                base64Image = '';
+            } else {
+                // Iniciar la captura
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    cameraRecordIndicator.classList.add('active');
+                    isCapturingCamera = true;
+                    cameraVideo.srcObject = cameraStream;
+                    cameraModal.classList.remove('hidden');
+
+                    cameraCaptureIntervalId = setInterval(() => {
+                        if (cameraVideo.readyState >= 2) {
+                            hiddenCanvas.width = cameraVideo.videoWidth;
+                            hiddenCanvas.height = cameraVideo.videoHeight;
+                            ctx.fillStyle = "white"; // Asegura que el fondo del canvas sea blanco
+                            ctx.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                            ctx.drawImage(cameraVideo, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+
+                            const imageBase64 = hiddenCanvas.toDataURL('image/png');
+                            imageMimeType = 'image/png';
+                            const base64Content = imageBase64.split(',')[1];
+                            base64Image = base64Content;
+                            imagePreview.src = imageBase64;
+                            imagePreview.classList.remove('hidden');
+                        }
+                    }, 500); // Captura cada 0.5 segundos
+
+                } catch (error) {
+                    console.error('Error al acceder a la cámara:', error);
+                    showStatus('Error al acceder a la cámara. Asegúrate de dar los permisos.', true);
+                    cameraRecordIndicator.classList.remove('active');
+                    isCapturingCamera = false;
+                }
+            }
+        });
+
+        closeCameraBtn.addEventListener('click', () => {
+            if (isCapturingCamera) {
+                clearInterval(cameraCaptureIntervalId);
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraRecordIndicator.classList.remove('active');
+                isCapturingCamera = false;
+                cameraModal.classList.add('hidden');
+                imagePreview.classList.add('hidden');
+                base64Image = '';
+            }
+        });
+    </script>
 </body>
 </html>
